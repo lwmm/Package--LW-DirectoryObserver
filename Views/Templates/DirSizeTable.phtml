@@ -1,0 +1,63 @@
+<script src="<?php echo $this->jqPlotMin; ?>"></script>
+<script src="<?php echo $this->jqPlotDateRender; ?>"></script>
+<script src="<?php echo $this->jqPlotTextRender; ?>"></script>
+<script src="<?php echo $this->jqPlotAxisTickRender; ?>"></script>
+
+<script>
+    $(document).ready(function() {
+
+        var points = [<?php
+foreach ($this->entries as $date => $size) {
+    $year = substr($date, 0, 4);
+    $month = substr($date, 4, 2);
+    $day = substr($date, 6, 2);
+    $str.= "['" . $year . "-" . $month . "-" . $day . "'," . $size/ $this->divisor . "],";
+}
+echo substr($str, 0, strlen($str) - 1);
+?>];
+
+        var plot1 = $.jqplot('chart1', [points], {
+            title: 'Verzeichnisgr&ouml;&szlig;e : <?php echo $this->observePath; ?>',
+            series: [{showMarker: true}],
+            seriesDefaults: {
+                rendererOptions: {
+                    smooth: true
+                },
+                fill: false
+            },
+            axesDefaults: {
+                show: false,
+                min: null,
+                max: null,
+                pad: 1
+            },
+            axes: {xaxis: {
+                        tickRenderer: $.jqplot.CanvasAxisTickRenderer ,
+                        renderer: $.jqplot.DateAxisRenderer,
+                        tickOptions: {formatString: '%d.%m.%Y',angle: -45},
+                        min: '<?php echo $this->startDate; ?>',
+                        max: '<?php echo $this->endDate; ?>',
+                        tickInterval: '1 day'
+                    },
+                    yaxis: {
+                        label:'<?php echo $this->size; ?>'
+                    }
+                }
+        });
+    });
+</script>
+<style>
+    .jqplot-yaxis {
+        padding-right: 0px !important;
+    }
+    .jqplot-xaxis {
+        padding-top: 20px !important;
+    }
+    .jqplot-yaxis-label{
+        width: 40px!important;
+        top: -10px!important;
+    }
+</style>
+<div id="chart_container" style="padding: 40px;margin-left: 20px;">
+    <div id="chart1"></div>
+</div>
