@@ -1,0 +1,28 @@
+Konfigurationseintrag:
+logtype = Logdaten in der lw_directory_observer Tabelle oder einer Logdatei speichern.
+
+
+[directoryobserver]
+changelog_path = /var/www/c38/lw_resource/changelogs/
+logtype = "db" / "file" 
+
+
+Aktuelle Verzeichnisstruktur wird immer in einer Logdatei gespeichert, in folgendem Pfad:
+.../c38/lw_resource/lw_logs/lw_directoryobserver/
+
+
+
+Tablestructure:
+
+CREATE TABLE IF NOT EXISTS lw_directory_observer (
+    id int(11) NOT NULL AUTO_INCREMENT,
+    date int(8) NOT NULL,
+    observed_directory varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+    name varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+    type varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+    operation varchar(2555) COLLATE utf8_unicode_ci NOT NULL,
+    size varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+    new_size varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+    last_change_date bigint(14) NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
