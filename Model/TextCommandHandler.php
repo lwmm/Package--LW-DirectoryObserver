@@ -31,10 +31,15 @@ class TextCommandHandler
      * @param array $changes
      * @return boolean
      */
-    public function addChanges($changes)
+    public function addChanges($changes, $override = false)
     {
+        if(!$override) {
+            $param = "a";
+        }else{
+            $param = "w";
+        }
         $name = md5($this->observePath) . ".log";
-        $logfile = fopen($this->changeLogPath.$name, "a");
+        $logfile = fopen($this->changeLogPath.$name, $param);
 
         foreach(array("directories", "files") as $type){
             if (array_key_exists($type, $changes)) {
@@ -87,13 +92,13 @@ class TextCommandHandler
         return round($completeSize / pow(1024, ($i = floor(log($completeSize, 1024)))), 2) . $filesizename[$i];
     }
     
-    public function deleteAllObserveData($observePath)
+    public function deleteAllObserveData()
     {
         $changeLogDir = \lw_directory::getInstance($this->changeLogPath);
         $files = $changeLogDir->getDirectoryContents("file");
         
         foreach($files as $file) {
-            if($file->getName() == md5($observePath).".log") {
+            if($file->getName() == md5($this->observePath).".log") {
                 $changeLogDir->deleteFile($file->getName());
             }
         }
@@ -101,11 +106,24 @@ class TextCommandHandler
         $logDir = \lw_directory::getInstance($this->structureLogPath);
         $files = $logDir->getDirectoryContents("file");
         foreach($files as $file) {
-            if($file->getName() == md5($observePath).".log") {
+            if($file->getName() == md5($this->observePath).".log") {
                 $logDir->deleteFile($file->getName());
             }
         }
         
         return true;
+    }
+    
+    public function autoDeleteOfExpiredEntries($expiringDate)
+    {
+        $queryHandler = new \LwDirectoryObserver\Model\TextQueryHandler($this->changeLogPath);
+        $logs = $queryHandler->getLog();
+        foreach($logs as $date => $entries){
+            if($date < $expiringDate) {
+                unset($logs[$date]);
+            }
+        }
+        
+        return $this->addChanges($logs, true);
     }
 }

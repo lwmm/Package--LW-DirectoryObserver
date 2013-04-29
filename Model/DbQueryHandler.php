@@ -48,12 +48,17 @@ class DbQueryHandler
      */
     public function getCompleteSize($startDate = false, $endDate = false)
     {
+        $completeSizeArray = array();
+        
         if(!$startDate && !$endDate){
             $this->db->setStatement("SELECT date,size FROM t:lw_directory_observer WHERE observed_directory = :dir AND type = :type ");
         }
         else {
-            if(!$endDate) {
+            if(!$endDate && $startDate) {
                 $endDate = $startDate;
+            }
+            elseif(!$startDate && $endDate){
+                $startDate = $endDate;
             }
             $this->db->setStatement("SELECT date,size FROM t:lw_directory_observer WHERE observed_directory = :dir AND type = :type AND date >= :startdate AND date <= :enddate  ");
             $this->db->bindParameter("startdate", "i", $startDate);
@@ -82,10 +87,13 @@ class DbQueryHandler
             $this->db->setStatement("SELECT * FROM t:lw_directory_observer WHERE observed_directory = :dir ");
         }
         else {
-            if(!$endDate) {
+            if(!$endDate && $startDate) {
                 $endDate = $startDate;
             }
-            $this->db->setStatement("SELECT * FROM t:lw_directory_observer WHERE observed_directory = :dir date >= :startdate AND date <= :enddate  ");
+            elseif(!$startDate && $endDate){
+                $startDate = $endDate;
+            }
+            $this->db->setStatement("SELECT * FROM t:lw_directory_observer WHERE observed_directory = :dir AND date >= :startdate AND date <= :enddate  ");
             $this->db->bindParameter("startdate", "i", $startDate);
             $this->db->bindParameter("enddate", "i", $endDate);
         }
@@ -120,8 +128,7 @@ class DbQueryHandler
             else{
                 $logArray[$entry["date"]][strtoupper($entry["type"])][] = array("size" => $entry["size"], "timeofscan" => $entry["last_change_date"]);
             }
-        }
-        
+        }       
         return $logArray;
     }
 }

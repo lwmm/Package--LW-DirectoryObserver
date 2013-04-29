@@ -1,10 +1,6 @@
 <?php
 
 include_once(dirname(__FILE__) . '/../../Services/Autoloader.php');
-require_once dirname(__FILE__) . '/../../../../../c_libraries/lw/lw_object.class.php';
-require_once dirname(__FILE__) . '/../../../../../c_libraries/lw/lw_db.class.php';
-require_once dirname(__FILE__) . '/../../../../../c_libraries/lw/lw_db_mysqli.class.php';
-require_once dirname(__FILE__) . '/../../../../../c_libraries/lw/lw_registry.class.php';
 require_once dirname(__FILE__) . '/../Config/phpUnitConfig.php';
 
 /**
@@ -26,9 +22,13 @@ class DbCommandHandlerTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $autoloader = new \LwDirectoryObserver\Services\Autoloader();
-
         $phpUnitConfig = new phpUnitConfig();
         $config = $phpUnitConfig->getConfig();
+
+        require_once $config["libraries"] . 'lw/lw_object.class.php';
+        require_once $config["libraries"] . 'lw/lw_db.class.php';
+        require_once $config["libraries"] . 'lw/lw_db_mysqli.class.php';
+        require_once $config["libraries"] . 'lw/lw_registry.class.php';
 
         $db = new lw_db_mysqli($config["lwdb"]["user"], $config["lwdb"]["pass"], $config["lwdb"]["host"], $config["lwdb"]["db"]);
         $db->connect();
@@ -62,7 +62,6 @@ class DbCommandHandlerTest extends \PHPUnit_Framework_TestCase
         $this->db->pdbquery();
     }
 
-
     /**
      * @covers LwDirectoryObserver\Model\DbCommandHandler::addChanges
      * @todo   Implement testAddChanges().
@@ -70,16 +69,46 @@ class DbCommandHandlerTest extends \PHPUnit_Framework_TestCase
     public function testAddChanges()
     {
         $array = array("files" => array(
-            "lovelywallpaper8_1.jpg" => array("deleted" => 1),
-            "BenutzerhandbuchVorlage.odt" => array("added" => array("size" => "2.2 MB", "date" => 20130423145741)),
-            "template.html" => array("added" => array("size" => "5.36 KB", "date" => 20130423145741))
-            ));
-        
+                "lovelywallpaper8_1.jpg" => array("deleted" => 1),
+                "BenutzerhandbuchVorlage.odt" => array("added" => array("size" => "2.2 MB", "date" => 20130423145741)),
+                "template.html" => array("added" => array("size" => "5.36 KB", "date" => 20130423145741))
+        ));
+
         $this->commandHandler->addChanges($array);
-        
-        $this->db->setStatement("SELECT * FROM t:lw_directory_observer WHERE id <= 4");
-        $result = $this->db->pselect1();
-        print_r($result);diE();
+
+        $this->db->setStatement("SELECT id,observed_directory,name,type,operation,size,new_size FROM t:lw_directory_observer WHERE observed_directory = :dir ");
+        $this->db->bindParameter("dir", "s", "/ich/bin/der/observe/path/");
+        $result = $this->db->pselect();
+
+        $assertedArray = array(
+            array(
+                "id" => "1",
+                "observed_directory" => "/ich/bin/der/observe/path/",
+                "name" => "lovelywallpaper8_1.jpg",
+                "type" => "files",
+                "operation" => "deleted",
+                "size" => "",
+                "new_size" => ""),
+            array(
+                "id" => "2",
+                "observed_directory" => "/ich/bin/der/observe/path/",
+                "name" => "BenutzerhandbuchVorlage.odt",
+                "type" => "files",
+                "operation" => "added",
+                "size" => "2.2 MB",
+                "new_size" => ""),
+            array
+                (
+                "id" => "3",
+                "observed_directory" => "/ich/bin/der/observe/path/",
+                "name" => "template.html",
+                "type" => "files",
+                "operation" => "added",
+                "size" => "5.36 KB",
+                "new_size" => "")
+        );
+
+        $this->assertEquals($assertedArray, $result);
     }
 
     /**
@@ -88,9 +117,21 @@ class DbCommandHandlerTest extends \PHPUnit_Framework_TestCase
      */
     public function testSaveCompleteSize()
     {
-        // Remove the following lines when you implement this test.
-        $this->markTestIncomplete(
-                'This test has not been implemented yet.'
-        );
+        $completeSize = 2234794;
+        $this->commandHandler->saveCompleteSize($completeSize);
+
+        $this->db->setStatement("SELECT id,observed_directory,name,type,operation,size,new_size FROM t:lw_directory_observer WHERE id = 1 ");
+        $result = $this->db->pselect1();
+        
+        $assertedArray = array(
+            "id" => "1",
+            "observed_directory" => "/ich/bin/der/observe/path/",
+            "name" => "",
+            "type" => "completesize",
+            "operation" => "",
+            "size" => "2.13 MB",
+            "new_size" => "");
+        
+        $this->assertEquals($assertedArray, $result);
     }
 }

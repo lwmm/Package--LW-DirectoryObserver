@@ -8,14 +8,14 @@ class phpUnitConfig
     public function getConfig()
     {
         return array(
-            "lwdb"          => array("user" => "root",
-                                     "pass" => "tischtennis",
-                                     "host" => "localhost",
-                                     "db"   => "phpUnit"),
+            "lwdb"              => array("user" => "root",
+                                        "pass" => "tischtennis",
+                                        "host" => "localhost",
+                                        "db"   => "phpUnit"),
             
-            "plugins"       => "C:/xampp/htdocs/c38/contentory/c_server/plugins/",
+            "libraries"         => "/var/www/c38/contentory/c_libraries/",
             
-            "plugin_path"   => array("lw" => "C:/xampp/htdocs/c38/contentory/c_server/modules/lw/")
+            "pathForDirTesting" => "/var/www/c38/lw_resource/"
         );
     }
 }

@@ -4,7 +4,8 @@ logtype = Logdaten in der lw_directory_observer Tabelle oder einer Logdatei spei
 
 [directoryobserver]
 changelog_path = /var/www/c38/lw_resource/changelogs/
-logtype = "db" / "file" 
+logtype = "db" / "file"
+month_of_saving = 1  
 
 
 Aktuelle Verzeichnisstruktur wird immer in einer Logdatei gespeichert, in folgendem Pfad:
@@ -26,3 +27,7 @@ CREATE TABLE IF NOT EXISTS lw_directory_observer (
     last_change_date bigint(14) NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
+
+
+jqplot library benoetigt:
+.../c38/c_media/jquery/jqplot

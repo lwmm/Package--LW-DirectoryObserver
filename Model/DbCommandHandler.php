@@ -49,17 +49,17 @@ class DbCommandHandler
                     $this->db->bindParameter("name", "s", $name);
                     $this->db->bindParameter("type", "s", $dirOrFile);
                     $this->db->bindParameter("operation", "s", $operation);
-                    if($operation == "added") {
+                    if ($operation == "added") {
                         $this->db->bindParameter("size", "s", $infos[$operation]["size"]);
                         $this->db->bindParameter("last_date", "i", $infos[$operation]["date"]);
                         $this->db->bindParameter("new_size", "s", "");
                     }
-                    elseif($operation == "change"){
+                    elseif ($operation == "change") {
                         $this->db->bindParameter("size", "s", $infos[$operation]["size"]["old"]);
                         $this->db->bindParameter("new_size", "s", $infos[$operation]["size"]["new"]);
                         $this->db->bindParameter("last_date", "i", $infos[$operation]["date"]["new"]);
                     }
-                    else{
+                    else {
                         $this->db->bindParameter("size", "s", "");
                         $this->db->bindParameter("last_date", "i", date("YmdHis"));
                         $this->db->bindParameter("new_size", "s", "");
@@ -81,9 +81,9 @@ class DbCommandHandler
         $this->db->setStatement("INSERT INTO t:lw_directory_observer (date, observed_directory,type, size, last_change_date) VALUES (:date, :dir, :type, :size, :timeofscan) ");
         $this->db->bindParameter("date", "i", date("Ymd"));
         $this->db->bindParameter("dir", "s", $this->observePath);
-        $this->db->bindParameter("type","s", "completesize");
-        $this->db->bindParameter("timeofscan","i", date("YmdHis"));
-        $this->db->bindParameter("size","s", $this->getHumanCompleteSize($completeSize));
+        $this->db->bindParameter("type", "s", "completesize");
+        $this->db->bindParameter("timeofscan", "i", date("YmdHis"));
+        $this->db->bindParameter("size", "s", $this->getHumanCompleteSize($completeSize));
         return $this->db->pdbquery();
     }
 
@@ -101,18 +101,27 @@ class DbCommandHandler
         return round($completeSize / pow(1024, ($i = floor(log($completeSize, 1024)))), 2) . $filesizename[$i];
     }
 
-    public function deleteAllObserveData($observePath)
+    public function deleteAllObserveData()
     {
         $logDir = \lw_directory::getInstance($this->structureLogPath);
         $files = $logDir->getDirectoryContents("file");
-        foreach($files as $file) {
-            if($file->getName() == md5($observePath).".log") {
+        foreach ($files as $file) {
+            if ($file->getName() == md5($this->observePath) . ".log") {
                 $logDir->deleteFile($file->getName());
             }
         }
-        
+
         $this->db->setStatement("DELETE FROM t:lw_directory_observer WHERE observed_directory = :dir ");
-        $this->db->bindParameter("dir", "s", $observePath);
+        $this->db->bindParameter("dir", "s", $this->observePath);
         return $this->db->pdbquery();
     }
+
+    public function autoDeleteOfExpiredEntries($expiringDate)
+    {
+        $this->db->setStatement("DELETE FROM t:lw_directory_observer WHERE observed_directory = :dir AND date < :expiringDate ");
+        $this->db->bindParameter("dir", "s", $this->observePath);
+        $this->db->bindParameter("expiringDate", "i", $expiringDate);
+        return $this->db->pdbquery();
+    }
+
 }

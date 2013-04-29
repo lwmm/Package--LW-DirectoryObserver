@@ -41,6 +41,10 @@ class DirectoryObserver
             throw new \LwDirectoryObserver\Model\ObserveDirectoryNotExistingException();
         }
         
+        if(!is_dir($this->config["path"]["media"]."jquery/jqplot/")){
+            throw new \LwDirectoryObserver\Model\JqPlotDirectoryNotExistingException();
+        }
+        
         if(!is_dir($this->config["path"]["resource"] . "lw_logs/lw_directoryobserver/")) {
             throw new \LwDirectoryObserver\Model\DirectoryObserverLogDirectoryNotExistingException();
         }
@@ -107,6 +111,15 @@ class DirectoryObserver
      */
     public function scan()
     {
+        if(array_key_exists("month_of_saving", $this->config["directoryobserver"])) {
+            $days = 30 * intval($this->config["directoryobserver"]["month_of_saving"]);
+        }
+        else{
+            $days = 30;
+        }
+        $expiringDate = date("Ymd", strtotime("-".$days." days"));
+        $this->commandHandler->autoDeleteOfExpiredEntries($expiringDate);
+        
         $observedDir = \lw_directory::getInstance($this->observePath);
 
         $files = $observedDir->getDirectoryContents("file");
@@ -305,9 +318,9 @@ class DirectoryObserver
         return $this->queryHandler->getCompleteSize($startDate, $endDate);
     }
     
-    public function deleteAllObserveData($observePath)
+    public function deleteAllObserveData()
     {
-        return $this->commandHandler->deleteAllObserveData($observePath);
+        return $this->commandHandler->deleteAllObserveData();
     }
 
 }
